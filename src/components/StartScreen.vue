@@ -1,17 +1,25 @@
 <template>
-  <h1 class="greeting">{{message}}</h1>
+  <div class="start-screen">
+    <img class="game-logo" src="../assets/pokerchip.png">
+    <h1 class="game-title">{{gameTitle}}</h1>
+  </div>
 </template>
 
 <script>
 export default {
   data: () => ({
-    message: 'Hello World'
+    gameTitle: 'Poker Chip Counter'
   })
 }
 </script>
 
 <style scoped>
-.greeting {
+.game-logo {
+  max-height: 512px;
+  max-width: 512px;
+}
+
+.game-title {
     color: green;
 }
 </style>
