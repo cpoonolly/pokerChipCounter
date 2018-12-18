@@ -5,6 +5,8 @@ import App from './App'
 import router from './router'
 
 import 'normalize.css'
+import 'materialize-css/dist/css/materialize.min.css'
+import 'materialize-css/dist/js/materialize.min.js'
 
 Vue.config.productionTip = false
 
