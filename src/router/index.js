@@ -1,6 +1,7 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import StartScreen from '@/components/StartScreen'
+import Vue from 'vue';
+import Router from 'vue-router';
+import StartScreen from '@/components/StartScreen';
+import NewGameScreen from '@/components/NewGameScreen';
 
 Vue.use(Router)
 
@@ -10,6 +11,11 @@ export default new Router({
       path: '/',
       name: 'StartScreen',
       component: StartScreen
+    },
+    {
+      path: '/new-game',
+      name: 'NewGameScreen',
+      component: NewGameScreen
     }
   ]
 })
