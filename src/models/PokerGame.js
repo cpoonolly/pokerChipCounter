@@ -34,6 +34,9 @@ class Pot {
   constructor() {
     this.players = new Set();
     this.chips = 0;
+
+    // this is the total bet FOR THIS HAND that a player needs to be included in this pot
+    this.toCall = 0;
   }
 }
 
@@ -130,23 +133,49 @@ class PokerGame {
   }
 
   recalculatePots() {
-    // TODO - Work on this
     let playersOrderedByBet = _.orderBy(this.players, ['betThisHand'], ['asc']);
-    let highestPlayerBetSoFar = 0;
 
-    this.pots = [];
+    // create main pot
+    let mainPot = new Pot();
+    mainPot.toCall = this.highestBetThisHand;
 
-    _.forEach(playersOrderedByBet, (player, playerIndex) => {
-      _.forEach(this.pots, (pot) => pot.players.add(player));
-
-      if (player.bet < this.highestBetThisHand && !player.hasFolded) {
+    // create side pots (side pots are created for players who are all in but still have bet less than highest bet for the hand)
+    let sidePots = _(playersOrderedByBet)
+      .reject('hasFolded')
+      .filter('isAllIn')
+      .filter((player) => player.bet < this.highestBetThisHand)
+      .map((player) => {
         let sidePot = new Pot();
+        sidePot.toCall = player.bet;
 
-        sidePot.players.add(player);
-        sidePot.chips = (playersOrderedByBet.length - playerIndex) * (highestPlayerBetSoFar * player.bet);
-        this.pots.push(sidePot);
-      }
-    }, this);
+        return sidePot;
+      })
+      .value();
+
+    // combine them
+    this.pots = _.concat(sidePots, mainPot);
+
+    // calculate total chips in all pots
+    let toCallForLastPot = 0;
+
+    _.forEach(this.pots, (pot) => {
+      pot.players = _(playersOrderedByBet)
+        .reject('hasFolded')
+        .filter((player) => player.bet >= pot.toCall)
+        .value();
+
+      pot.chips = (pot.toCall - toCallForLastPot) * pot.players;
+
+      // need to include any players that bet then folded
+      pot.chips += _(playersOrderedByBet) 
+        .filter('hasFolded')
+        .filter((player) => player.bet > toCallForLastPot)
+        .filter((player) => player.bet < pot.toCall)
+        .map('bet')
+        .sum();
+
+      toCallForLastPot = pot.toCall;
+    });
   }
 }
 
