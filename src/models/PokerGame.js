@@ -164,7 +164,7 @@ class PokerGame {
         .filter((player) => player.bet >= pot.toCall)
         .value();
 
-      pot.chips = (pot.toCall - toCallForLastPot) * pot.players;
+      pot.chips = (pot.toCall - toCallForLastPot) * pot.players.length;
 
       // need to include any players that bet then folded
       pot.chips += _(playersOrderedByBet) 
