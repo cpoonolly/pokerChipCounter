@@ -1,5 +1,3 @@
-import { Deck } from './Deck';
-import { Player } from './Player';
 import _ from 'lodash';
 
 const StagesOfAHand = Object.freeze({
@@ -108,7 +106,7 @@ class PokerGame {
 
     this.highestBetThisHand = newBet;
     player.betThisHand = newBet;
-    player.isAllIn = (player.betThisHand == player.chips);
+    player.isAllIn = (player.betThisHand === player.chips);
   }
 
   startNewHand() {
