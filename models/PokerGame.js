@@ -14,6 +14,12 @@ const RoundsOfAHandOrdered = [
   RoundsOfAHand.RIVER
 ];
 
+const PokerGameEvents = Object.freeze({
+  NEXT_PLAYER_TURN: Symbol('NEXT_PLAYER_TURN'),
+  ROUND_FINISHED: Symbol('ROUND_FINISHED'),
+  HAND_FINISHED: Symbol('HAND_FINISHED')
+});
+
 class Player {
   constructor(name, chips) {
     this.name = name;
@@ -41,6 +47,30 @@ class Pot {
 }
 
 class PokerGame {
+  chipsPerPlayer = 0;
+  smallBlind = 0;
+  bigBlind = 0;
+
+  players = [];
+  dealer = null;
+  playerWhoseTurnItIs = null;
+
+  // this is the hightest bet for a full HAND! (not per round - it's different the amount displayed to call)
+  highestBetThisHand = 0;
+
+  // highest bet this/last round
+  highestBetThisRound = 0;
+  highestBetLastRound = 0;
+
+  round = null;
+  pots = [];
+
+  // setting these flags to true so we can call "startNewHandIsCalled"
+  isRoundOver = false;
+  isHandOver = false;
+
+  subscribersByEvent = {};
+
   constructor(playerNames, chipsPerPlayer = 100, smallBlind = 5, bigBlind = 10) {
     if (_.size(playerNames) < 2) {
       throw new Error('At least 2 players need to be present!');
@@ -57,21 +87,23 @@ class PokerGame {
 
     // Initialize players
     this.players = playerNames.map((playerName) => new Player(playerName, chipsPerPlayer));
-    this.dealer = null;
-    this.playerWhoseTurnItIs = null;
 
-    // this is the hightest bet for a full HAND! (not per round - it's different the amount displayed to call)
-    this.highestBetThisHand = 0;
+    // Initialize subscribers map
+    _(PokerGameEvents)
+      .values()
+      .forEach((pokerGameEvent) => this.subscribersByEvent[pokerGameEvent] = new Set(), this);
+  }
 
-    // highest bet this/last round
-    this.highestBetThisRound = 0;
-    this.highestBetLastRound = 0;
+  subscribeToEvent(pokerGameEvent, callback) {
 
-    this.round = null;
-    this.pots = [];
+  }
 
-    this.isRoundOver = true;
-    this.isHandOver = true;
+  notifyForEvent(pokerGameEvent) {
+
+  }
+
+  unsubscribeToEvent(pokerGameEvent, callback) {
+
   }
 
   getPlayerNextTo(player) {
