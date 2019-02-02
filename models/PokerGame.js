@@ -95,15 +95,24 @@ class PokerGame {
   }
 
   subscribeToEvent(pokerGameEvent, callback) {
+    let subscribers = this.subscribersByEvent[pokerGameEvent];
+    console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
 
+    subscribers.add(callback);
   }
 
   notifyForEvent(pokerGameEvent) {
-
+    let subscribers = this.subscribersByEvent[pokerGameEvent];
+    console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
+    
+    subscribers.forEach((callback) => callback(pokerGameEvent));
   }
 
   unsubscribeToEvent(pokerGameEvent, callback) {
+    let subscribers = this.subscribersByEvent[pokerGameEvent];
+    console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
 
+    subscribers.delete(callback);
   }
 
   getPlayerNextTo(player) {
@@ -176,7 +185,7 @@ class PokerGame {
   }
 
   onNextPlayerTurn() {
-    // notify subscribers
+    this.notifyForEvent(PokerGameEvents.NEXT_PLAYER_TURN);
   }
 
   onRoundFinished() {
@@ -185,14 +194,14 @@ class PokerGame {
     if (this.round === RoundsOfAHand.RIVER) {
       this.onHandFinished();
     } else {
-      // notify subscribers...
+      this.notifyForEvent(PokerGameEvents.ROUND_FINISHED);
     }
   }
 
   onHandFinished() {
     this.isHandOver = true;
 
-    // notify subscribers
+    this.notifyForEvent(PokerGameEvents.HAND_FINISHED);
   }
 
   awardPot(pot, player) {
