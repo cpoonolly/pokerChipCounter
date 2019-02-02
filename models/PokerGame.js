@@ -66,8 +66,8 @@ class PokerGame {
   pots = [];
 
   // setting these flags to true so we can call "startNewHandIsCalled"
-  isRoundOver = false;
-  isHandOver = false;
+  isRoundOver = true;
+  isHandOver = true;
 
   subscribersByEvent = {};
 
