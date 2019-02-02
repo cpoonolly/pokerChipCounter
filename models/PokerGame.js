@@ -204,10 +204,21 @@ class PokerGame {
     this.notifyForEvent(PokerGameEvents.HAND_FINISHED);
   }
 
-  awardPot(pot, player) {
-    // distribute winnings and mark pot as awarded
+  awardPot(pot, winningPlayers) {
+    if (!this.isHandOver) {
+      throw new Error(`Cannot start awarding pots unless the hand is over`);
+    }
+
+    // TODO - distribute winnings and mark pot as awarded
+    let winningsPerPlayer = pot.chips / winningPlayers.length;
 
     pot.isAwarded = true;
+    winningPlayers.forEach((player) => player.chips += Math.floor(winningsPerPlayer));
+
+    // check if the divided winnings are decimally split up.. if so add extra chip to the first player
+    if (Math.floor(winningsPerPlayer) < winningsPerPlayer) {
+      winningPlayers[0].chips += 1;
+    }
   }
 
   setPlayerBet(player, newBet) {
