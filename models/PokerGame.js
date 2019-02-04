@@ -15,7 +15,7 @@ const RoundsOfAHandOrdered = [
 ];
 
 const PokerGameEvents = Object.freeze({
-  NEXT_PLAYER_TURN: Symbol('NEXT_PLAYER_TURN'),
+  TURN_FINISHED: Symbol('TURN_FINISHED'),
   ROUND_FINISHED: Symbol('ROUND_FINISHED'),
   HAND_FINISHED: Symbol('HAND_FINISHED')
 });
@@ -53,7 +53,7 @@ class PokerGame {
 
   players = [];
   dealer = null;
-  playerWhoseTurnItIs = null;
+  currentPlayer = null;
 
   // this is the hightest bet for a full HAND! (not per round - it's different the amount displayed to call)
   highestBetThisHand = 0;
@@ -65,7 +65,7 @@ class PokerGame {
   round = null;
   pots = [];
 
-  // setting these flags to true so we can call "startNewHandIsCalled"
+  // setting these flags to true so we can call "startNewHand"
   isRoundOver = true;
   isHandOver = true;
 
@@ -121,55 +121,55 @@ class PokerGame {
 
   // TODO - double check the logic for these canCurrentPlayer* methods
   canCurrentPlayerCheck() {
-    return !this.playerWhoseTurnItIs.hasFolded && !this.playerWhoseTurnItIs.isAllIn && this.playerWhoseTurnItIs.betThisHand === this.highestBetThisHand;
+    return !this.currentPlayer.hasFolded && !this.currentPlayer.isAllIn && this.currentPlayer.betThisHand === this.highestBetThisHand;
   }
 
   canCurrentPlayerCall() {
-    return !this.playerWhoseTurnItIs.hasFolded && !this.playerWhoseTurnItIs.isAllIn && this.playerWhoseTurnItIs.betThisHand < this.highestBetThisHand;
+    return !this.currentPlayer.hasFolded && !this.currentPlayer.isAllIn && this.currentPlayer.betThisHand < this.highestBetThisHand;
   }
 
   canCurrentPlayerRaise() {
-    return !this.playerWhoseTurnItIs.hasFolded && !this.playerWhoseTurnItIs.isAllIn;
+    return !this.currentPlayer.hasFolded && !this.currentPlayer.isAllIn;
   }
 
   canCurrentPlayerFold() {
-    return !this.playerWhoseTurnItIs.hasFolded;
+    return !this.currentPlayer.hasFolded;
   }
 
   check() {
-    this.setPlayerBet(this.playerWhoseTurnItIs, this.playerWhoseTurnItIs.betThisHand);
+    this.bet(this.currentPlayer, 0);
     this.finishTurn();
   }
 
   call() {
-    this.setPlayerBet(this.playerWhoseTurnItIs, this.highestBetThisHand);
+    this.bet(this.currentPlayer, this.highestBetThisHand - this.currentPlayer.betThisHand);
     this.finishTurn();
   }
 
   raise(chips) {
-    this.setPlayerBet(this.playerWhoseTurnItIs, chips);
+    this.bet(this.currentPlayer, chips);
     this.finishTurn();
   }
 
   fold() {
-    this.playerWhoseTurnItIs.hasFolded = true;
+    this.currentPlayer.hasFolded = true;
     this.finishTurn();
   }
 
   finishTurn() {
-    this.playerWhoseTurnItIs.hasPlayedThisRound = true;
+    this.currentPlayer.hasPlayedThisRound = true;
 
     // find the next player
-    let nextPlayer = this.playerWhoseTurnItIs(this.playerWhoseTurnItIs);
+    let nextPlayer = this.getPlayerNextTo(this.currentPlayer);
     
-    while (!nextPlayer.hasFolded && !nextPlayer.isAllIn && nextPlayer !== this.playerWhoseTurnItIs) {
+    while ((nextPlayer.hasFolded || nextPlayer.isAllIn) && nextPlayer !== this.currentPlayer) {
       nextPlayer = this.getPlayerNextTo(nextPlayer);
     }
 
     // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
 
     // hand is automatically over because everyone else has folded
-    if (nextPlayer === this.playerWhoseTurnItIs) {
+    if (nextPlayer === this.currentPlayer) {
       this.onHandFinished();
     
     // if next player has already gone and their bet is === to the current highest bet we're done with the round
@@ -179,13 +179,13 @@ class PokerGame {
 
     // otherwise just move on to the next player
     } else {
-      this.playerWhoseTurnItIs = nextPlayer;
+      this.currentPlayer = nextPlayer;
       this.onNextPlayerTurn();
     }
   }
 
   onNextPlayerTurn() {
-    this.notifyForEvent(PokerGameEvents.NEXT_PLAYER_TURN);
+    this.notifyForEvent(PokerGameEvents.TURN_FINISHED);
   }
 
   onRoundFinished() {
@@ -221,20 +221,22 @@ class PokerGame {
     }
   }
 
-  setPlayerBet(player, newBet) {
+  bet(player, chips) {
     if (player.hasFolded || player.isAllIn) {
       throw new Error('Player can no longer bet');
-    } else if (newBet > player.chips) {
+    } else if (chips > player.chips) {
       throw new Error('Cannot bet more chips than what player has!');
-    } else if (newBet < this.highestBetThisHand)  {
-      throw new Error(`Player must have a bet of at least ${this.highestBetThisHand}`);
+    } else if (player.betThisHand + chips < this.highestBetThisHand && chips < player.chips)  {
+      throw new Error(`Player must have a bet of at least ${this.highestBetThisHand} or go all in`);
     }
 
-    this.highestBetThisHand = newBet;
-    this.highestBetThisRound = (newBet - this.highestBetLastRound);
-    player.betThisHand = newBet;
-    player.betThisRound = (newBet - this.highestBetLastRound);
-    player.isAllIn = (player.betThisHand === player.chips);
+    player.betThisHand += chips;
+    player.betThisRound += chips;
+    player.chips -= chips;
+    player.isAllIn = (player.chips === 0);
+
+    this.highestBetThisHand = Math.max(this.highestBetThisHand, player.betThisHand);
+    this.highestBetThisRound = Math.max(this.highestBetThisRound, player.betThisRound);
 
     this.recalculatePots();
   }
@@ -259,6 +261,8 @@ class PokerGame {
       player.betThisHand = 0;
       player.betThisRound = 0;
       player.hasPlayedThisRound = false;
+      player.hasFolded = false;
+      player.isAllIn = false;
     });
 
     // if a new game no dealer exists so choose the first player otherwise choose the player next to the current dealer
@@ -268,11 +272,15 @@ class PokerGame {
     let playerWhoIsSmallBlind = this.getPlayerNextTo(this.dealer);
     let playerWhoIsBigBlind = this.getPlayerNextTo(playerWhoIsSmallBlind);
 
-    this.setPlayerBet(playerWhoIsSmallBlind, Math.min(playerWhoIsSmallBlind.chips, this.smallBlind));
-    this.setPlayerBet(playerWhoIsBigBlind, Math.min(playerWhoIsBigBlind.chips, this.bigBlind));
+    // set their bets and then unset their "hasPlayedThisRound" flag
+    this.bet(playerWhoIsSmallBlind, Math.min(playerWhoIsSmallBlind.chips, this.smallBlind));
+    this.bet(playerWhoIsBigBlind, Math.min(playerWhoIsBigBlind.chips, this.bigBlind));
+
+    playerWhoIsSmallBlind.hasPlayedThisRound = false;
+    playerWhoIsBigBlind.hasPlayedThisRound = false;
 
     // big blind goes first
-    this.playerWhoseTurnItIs = playerWhoIsBigBlind;
+    this.currentPlayer = playerWhoIsBigBlind;
   }
 
   startNewRound() {
@@ -307,10 +315,10 @@ class PokerGame {
     let sidePots = _(playersOrderedByBet)
       .reject('hasFolded')
       .filter('isAllIn')
-      .filter((player) => player.bet < this.highestBetThisHand)
+      .filter((player) => player.betThisHand < this.highestBetThisHand)
       .map((player) => {
         let sidePot = new Pot();
-        sidePot.toCall = player.bet;
+        sidePot.toCall = player.betThisHand;
 
         return sidePot;
       })
@@ -323,19 +331,16 @@ class PokerGame {
     let toCallForLastPot = 0;
 
     _.forEach(this.pots, (pot) => {
-      pot.players = _(playersOrderedByBet)
-        .reject('hasFolded')
-        .filter((player) => player.bet >= pot.toCall)
-        .value();
+      // all players with bets higher than the last pot "contributed" to this pot
+      let playersWhoContributedToPot = _.filter(playersOrderedByBet, (player) => player.betThisHand > toCallForLastPot);
 
-      pot.chips = (pot.toCall - toCallForLastPot) * pot.players.length;
+      // folded players aren't included in the pot.players array as they can no longer win the pot
+      // they have still "contributed" to the pot however
+      pot.players = _.reject(playersWhoContributedToPot, 'hasFolded');
 
-      // need to include any players that bet then folded
-      pot.chips += _(playersOrderedByBet) 
-        .filter('hasFolded')
-        .filter((player) => player.bet > toCallForLastPot)
-        .filter((player) => player.bet < pot.toCall)
-        .map('bet')
+      // calculate chips in the pot from all "contributing" players
+      pot.chips = _(playersWhoContributedToPot)
+        .map((player) => Math.min(player.betThisHand - toCallForLastPot, pot.toCall))
         .sum();
 
       toCallForLastPot = pot.toCall;
@@ -343,4 +348,4 @@ class PokerGame {
   }
 }
 
-export { PokerGame }
+export { PokerGame, Player, Pot, RoundsOfAHand, RoundsOfAHandOrdered, PokerGameEvents }
