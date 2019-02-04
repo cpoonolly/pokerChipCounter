@@ -169,6 +169,7 @@ class PokerGame {
     // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
 
     // hand is automatically over because everyone else has folded
+    console.log(`next player: ${nextPlayer.name}\tbet: ${nextPlayer.bet}\thasPlayedThisRound: ${nextPlayer.hasPlayedThisRound}`);
     if (nextPlayer === this.currentPlayer) {
       this.onHandFinished();
     
@@ -180,11 +181,12 @@ class PokerGame {
     // otherwise just move on to the next player
     } else {
       this.currentPlayer = nextPlayer;
-      this.onNextPlayerTurn();
+      this.onTurnFinished();
     }
   }
 
-  onNextPlayerTurn() {
+  onTurnFinished() {
+    console.log(`turn finished`);
     this.notifyForEvent(PokerGameEvents.TURN_FINISHED);
   }
 
@@ -194,6 +196,7 @@ class PokerGame {
     if (this.round === RoundsOfAHand.RIVER) {
       this.onHandFinished();
     } else {
+      console.log('round finished');
       this.notifyForEvent(PokerGameEvents.ROUND_FINISHED);
     }
   }
@@ -201,6 +204,7 @@ class PokerGame {
   onHandFinished() {
     this.isHandOver = true;
 
+    console.log('hand finished');
     this.notifyForEvent(PokerGameEvents.HAND_FINISHED);
   }
 
@@ -222,6 +226,8 @@ class PokerGame {
   }
 
   bet(player, chips) {
+    console.log(`player: ${player.name}\tbet: ${chips}`);
+
     if (player.hasFolded || player.isAllIn) {
       throw new Error('Player can no longer bet');
     } else if (chips > player.chips) {
