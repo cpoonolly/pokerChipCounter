@@ -169,7 +169,6 @@ class PokerGame {
     // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
 
     // hand is automatically over because everyone else has folded
-    console.log(`next player: ${nextPlayer.name}\tbet: ${nextPlayer.bet}\thasPlayedThisRound: ${nextPlayer.hasPlayedThisRound}`);
     if (nextPlayer === this.currentPlayer) {
       this.onHandFinished();
     
@@ -186,7 +185,6 @@ class PokerGame {
   }
 
   onTurnFinished() {
-    console.log(`turn finished`);
     this.notifyForEvent(PokerGameEvents.TURN_FINISHED);
   }
 
@@ -196,7 +194,6 @@ class PokerGame {
     if (this.round === RoundsOfAHand.RIVER) {
       this.onHandFinished();
     } else {
-      console.log('round finished');
       this.notifyForEvent(PokerGameEvents.ROUND_FINISHED);
     }
   }
@@ -204,7 +201,6 @@ class PokerGame {
   onHandFinished() {
     this.isHandOver = true;
 
-    console.log('hand finished');
     this.notifyForEvent(PokerGameEvents.HAND_FINISHED);
   }
 
@@ -226,8 +222,6 @@ class PokerGame {
   }
 
   bet(player, chips) {
-    console.log(`player: ${player.name}\tbet: ${chips}`);
-
     if (player.hasFolded || player.isAllIn) {
       throw new Error('Player can no longer bet');
     } else if (chips > player.chips) {
@@ -261,6 +255,14 @@ class PokerGame {
     this.highestBetLastRound = 0;
     this.isRoundOver = false;
     this.isHandOver = false;
+
+    // TODO - Might want to come up a better system then just removing them from this.players (like marking them as "out")
+    // remove any players who have lost all their chips
+    this.players = _.filter(this.players, (player) => player.chips > 0);
+
+    if (this.players.length < 2) {
+      throw new Error('Only one player remaining.. Game over.');
+    }
 
     // reset player's bets for the round/hand
     this.players.forEach((player) => {
@@ -334,11 +336,11 @@ class PokerGame {
     this.pots = _.concat(sidePots, mainPot);
 
     // calculate total chips in all pots
-    let toCallForLastPot = 0;
+    let toCallForPrevPot = 0;
 
     _.forEach(this.pots, (pot) => {
       // all players with bets higher than the last pot "contributed" to this pot
-      let playersWhoContributedToPot = _.filter(playersOrderedByBet, (player) => player.betThisHand > toCallForLastPot);
+      let playersWhoContributedToPot = _.filter(playersOrderedByBet, (player) => player.betThisHand > toCallForPrevPot);
 
       // folded players aren't included in the pot.players array as they can no longer win the pot
       // they have still "contributed" to the pot however
@@ -346,10 +348,10 @@ class PokerGame {
 
       // calculate chips in the pot from all "contributing" players
       pot.chips = _(playersWhoContributedToPot)
-        .map((player) => Math.min(player.betThisHand - toCallForLastPot, pot.toCall))
+        .map((player) => Math.min(player.betThisHand - toCallForPrevPot, pot.toCall))
         .sum();
 
-      toCallForLastPot = pot.toCall;
+      toCallForPrevPot = pot.toCall;
     });
   }
 }
