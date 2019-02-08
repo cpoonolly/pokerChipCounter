@@ -137,21 +137,29 @@ class PokerGame {
   }
 
   check() {
+    console.log(`CHECK - player: ${this.currentPlayer.name}`);
     this.bet(this.currentPlayer, 0);
     this.finishTurn();
   }
 
   call() {
+    console.log(`CALL - player: ${this.currentPlayer.name}`);
     this.bet(this.currentPlayer, this.highestBetThisHand - this.currentPlayer.betThisHand);
     this.finishTurn();
   }
 
   raise(chips) {
+    console.log(`RAISE - player: ${this.currentPlayer.name}`);
     this.bet(this.currentPlayer, chips);
     this.finishTurn();
   }
 
+  allIn() {
+    this.raise(this.currentPlayer.chips);
+  }
+
   fold() {
+    console.log(`FOLD - player: ${this.currentPlayer.name}`);
     this.currentPlayer.hasFolded = true;
     this.finishTurn();
   }
@@ -165,6 +173,8 @@ class PokerGame {
     while ((nextPlayer.hasFolded || nextPlayer.isAllIn) && nextPlayer !== this.currentPlayer) {
       nextPlayer = this.getPlayerNextTo(nextPlayer);
     }
+
+    console.log(`next player: ${nextPlayer.name}`);
 
     // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
 
@@ -185,20 +195,23 @@ class PokerGame {
   }
 
   onTurnFinished() {
+    console.log('TURN FINISHED');
     this.notifyForEvent(PokerGameEvents.TURN_FINISHED);
   }
 
   onRoundFinished() {
     this.isRoundOver = true;
-
+    
     if (this.round === RoundsOfAHand.RIVER) {
       this.onHandFinished();
     } else {
+      console.log('ROUND FINISHED');
       this.notifyForEvent(PokerGameEvents.ROUND_FINISHED);
     }
   }
 
   onHandFinished() {
+    console.log('HAND FINISHED');
     this.isHandOver = true;
 
     this.notifyForEvent(PokerGameEvents.HAND_FINISHED);
@@ -222,6 +235,8 @@ class PokerGame {
   }
 
   bet(player, chips) {
+    console.log(`player: ${player.name}\t\tbet: ${chips}`);
+
     if (player.hasFolded || player.isAllIn) {
       throw new Error('Player can no longer bet');
     } else if (chips > player.chips) {
@@ -289,6 +304,10 @@ class PokerGame {
 
     // big blind goes first
     this.currentPlayer = playerWhoIsBigBlind;
+
+    // in case big blind does not have enough chips we still need everyone else to call the big blind
+    this.highestBetThisHand = this.bigBlind;
+    this.recalculatePots();
   }
 
   startNewRound() {
