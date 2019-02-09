@@ -115,9 +115,15 @@ class PokerGame {
     subscribers.delete(callback);
   }
 
-  getPlayerNextTo(player) {
+  getPlayerAfter(player) {
     return this.players[(_.indexOf(this.players, player) + 1) % _.size(this.players)];
   }
+
+  /*
+  getPlayerBefore(player) {
+    return this.players[(_.indexOf(this.players, player) - 1 + this.players.length) % _.size(this.players)];
+  }
+  */
 
   // TODO - double check the logic for these canCurrentPlayer* methods
   canCurrentPlayerCheck() {
@@ -137,19 +143,22 @@ class PokerGame {
   }
 
   check() {
-    console.log(`CHECK - player: ${this.currentPlayer.name}`);
+    console.log(`player: ${this.currentPlayer.name}`);
+    console.log('CHECK');
     this.bet(this.currentPlayer, 0);
     this.finishTurn();
   }
 
   call() {
-    console.log(`CALL - player: ${this.currentPlayer.name}`);
+    console.log(`player: ${this.currentPlayer.name}`);
+    console.log('CALL');
     this.bet(this.currentPlayer, this.highestBetThisHand - this.currentPlayer.betThisHand);
     this.finishTurn();
   }
 
   raise(chips) {
-    console.log(`RAISE - player: ${this.currentPlayer.name}`);
+    console.log(`player: ${this.currentPlayer.name}`);
+    console.log('RAISE');
     this.bet(this.currentPlayer, chips);
     this.finishTurn();
   }
@@ -159,7 +168,8 @@ class PokerGame {
   }
 
   fold() {
-    console.log(`FOLD - player: ${this.currentPlayer.name}`);
+    console.log(`player: ${this.currentPlayer.name}`);
+    console.log('FOLD');
     this.currentPlayer.hasFolded = true;
     this.finishTurn();
   }
@@ -168,13 +178,13 @@ class PokerGame {
     this.currentPlayer.hasPlayedThisRound = true;
 
     // find the next player
-    let nextPlayer = this.getPlayerNextTo(this.currentPlayer);
+    let nextPlayer = this.getPlayerAfter(this.currentPlayer);
     
     while ((nextPlayer.hasFolded || nextPlayer.isAllIn) && nextPlayer !== this.currentPlayer) {
-      nextPlayer = this.getPlayerNextTo(nextPlayer);
+      nextPlayer = this.getPlayerAfter(nextPlayer);
     }
 
-    console.log(`next player: ${nextPlayer.name}`);
+    // console.log(`next player: ${nextPlayer.name}`);
 
     // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
 
@@ -195,7 +205,7 @@ class PokerGame {
   }
 
   onTurnFinished() {
-    console.log('TURN FINISHED');
+    console.log('-- turn finished --');
     this.notifyForEvent(PokerGameEvents.TURN_FINISHED);
   }
 
@@ -205,13 +215,13 @@ class PokerGame {
     if (this.round === RoundsOfAHand.RIVER) {
       this.onHandFinished();
     } else {
-      console.log('ROUND FINISHED');
+      console.log('----- ROUND FINISHED -----');
       this.notifyForEvent(PokerGameEvents.ROUND_FINISHED);
     }
   }
 
   onHandFinished() {
-    console.log('HAND FINISHED');
+    console.log('----- HAND FINISHED -----');
     this.isHandOver = true;
 
     this.notifyForEvent(PokerGameEvents.HAND_FINISHED);
@@ -235,7 +245,7 @@ class PokerGame {
   }
 
   bet(player, chips) {
-    console.log(`player: ${player.name}\t\tbet: ${chips}`);
+    console.log(`bet: ${chips}`);
 
     if (player.hasFolded || player.isAllIn) {
       throw new Error('Player can no longer bet');
@@ -257,6 +267,8 @@ class PokerGame {
   }
 
   startNewHand() {
+    console.log('----- HAND STARTED -----');
+
     if (!this.isHandOver) {
       throw new Error(`Current hand hasn't finished yet.`);
     } else if (!_.every(this.pots, 'isAwarded')) {
@@ -289,21 +301,39 @@ class PokerGame {
     });
 
     // if a new game no dealer exists so choose the first player otherwise choose the player next to the current dealer
-    this.dealer = (this.dealer ? this.getPlayerNextTo(this.dealer) : _.first(this.players));
+    this.dealer = (this.dealer ? this.getPlayerAfter(this.dealer) : _.first(this.players));
 
-    // player next to the dealer is small blind, person next to that is big blind
-    let playerWhoIsSmallBlind = this.getPlayerNextTo(this.dealer);
-    let playerWhoIsBigBlind = this.getPlayerNextTo(playerWhoIsSmallBlind);
+    let playerWhoIsBigBlind;
+    let playerWhoIsSmallBlind;
+
+    // normally order is: dealer, small blind, big blind, first player, everyone else
+    // (for 3 players it's: dealer/first player, small blind, big blind)
+    if (this.players.length !== 2) {
+      playerWhoIsSmallBlind = this.getPlayerAfter(this.dealer);
+      playerWhoIsBigBlind = this.getPlayerAfter(playerWhoIsSmallBlind);
+      this.currentPlayer = this.getPlayerAfter(playerWhoIsBigBlind);
+
+    // if only 2 players are present order is dealer/small blind/first player, big blind
+    } else {
+      playerWhoIsSmallBlind = this.dealer;
+      playerWhoIsBigBlind = this.getPlayerAfter(this.dealer);
+      this.currentPlayer = this.dealer;
+    }
+    
 
     // set their bets and then unset their "hasPlayedThisRound" flag
+    console.log(`player: ${playerWhoIsSmallBlind.name}`);
+    console.log('SMALL BLIND');
     this.bet(playerWhoIsSmallBlind, Math.min(playerWhoIsSmallBlind.chips, this.smallBlind));
+    console.log('-- turn finished --');
+
+    console.log(`player: ${playerWhoIsBigBlind.name}`);
+    console.log('BIG BLIND');
     this.bet(playerWhoIsBigBlind, Math.min(playerWhoIsBigBlind.chips, this.bigBlind));
+    console.log('-- turn finished --');
 
     playerWhoIsSmallBlind.hasPlayedThisRound = false;
     playerWhoIsBigBlind.hasPlayedThisRound = false;
-
-    // big blind goes first
-    this.currentPlayer = playerWhoIsBigBlind;
 
     // in case big blind does not have enough chips we still need everyone else to call the big blind
     this.highestBetThisHand = this.bigBlind;
@@ -311,6 +341,8 @@ class PokerGame {
   }
 
   startNewRound() {
+    console.log('----- ROUND STARTED -----');
+
     if (!this.isRoundOver) {
       throw new Error(`Current round hasn't finished yet.`);
     } else if (this.isHandOver || this.round === RoundsOfAHand.RIVER) {
