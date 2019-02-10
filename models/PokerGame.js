@@ -143,22 +143,22 @@ class PokerGame {
   }
 
   check() {
-    console.log(`player: ${this.currentPlayer.name}`);
-    console.log('CHECK');
+    // console.log(`player: ${this.currentPlayer.name}`);
+    // console.log('CHECK');
     this.bet(this.currentPlayer, 0);
     this.finishTurn();
   }
 
   call() {
-    console.log(`player: ${this.currentPlayer.name}`);
-    console.log('CALL');
+    // console.log(`player: ${this.currentPlayer.name}`);
+    // console.log('CALL');
     this.bet(this.currentPlayer, this.highestBetThisHand - this.currentPlayer.betThisHand);
     this.finishTurn();
   }
 
   raise(chips) {
-    console.log(`player: ${this.currentPlayer.name}`);
-    console.log('RAISE');
+    // console.log(`player: ${this.currentPlayer.name}`);
+    // console.log('RAISE');
     this.bet(this.currentPlayer, chips);
     this.finishTurn();
   }
@@ -168,8 +168,8 @@ class PokerGame {
   }
 
   fold() {
-    console.log(`player: ${this.currentPlayer.name}`);
-    console.log('FOLD');
+    // console.log(`player: ${this.currentPlayer.name}`);
+    // console.log('FOLD');
     this.currentPlayer.hasFolded = true;
     this.finishTurn();
   }
@@ -184,7 +184,7 @@ class PokerGame {
       nextPlayer = this.getPlayerAfter(nextPlayer);
     }
 
-    // console.log(`next player: ${nextPlayer.name}`);
+    // // console.log(`next player: ${nextPlayer.name}`);
 
     // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
 
@@ -205,7 +205,7 @@ class PokerGame {
   }
 
   onTurnFinished() {
-    console.log('-- turn finished --');
+    // console.log('-- turn finished --');
     this.notifyForEvent(PokerGameEvents.TURN_FINISHED);
   }
 
@@ -215,13 +215,13 @@ class PokerGame {
     if (this.round === RoundsOfAHand.RIVER) {
       this.onHandFinished();
     } else {
-      console.log('----- ROUND FINISHED -----');
+      // console.log('----- ROUND FINISHED -----');
       this.notifyForEvent(PokerGameEvents.ROUND_FINISHED);
     }
   }
 
   onHandFinished() {
-    console.log('----- HAND FINISHED -----');
+    // console.log('----- HAND FINISHED -----');
     this.isHandOver = true;
 
     this.notifyForEvent(PokerGameEvents.HAND_FINISHED);
@@ -245,14 +245,14 @@ class PokerGame {
   }
 
   bet(player, chips) {
-    console.log(`bet: ${chips}`);
+    // console.log(`bet: ${chips}`);
 
     if (player.hasFolded || player.isAllIn) {
       throw new Error('Player can no longer bet');
     } else if (chips > player.chips) {
       throw new Error('Cannot bet more chips than what player has!');
     } else if (player.betThisHand + chips < this.highestBetThisHand && chips < player.chips)  {
-      throw new Error(`Player must have a bet of at least ${this.highestBetThisHand} or go all in`);
+      throw new Error(`Player must have a bet of at least ${this.highestBetThisHand - player.betThisHand} or go all in`);
     }
 
     player.betThisHand += chips;
@@ -267,7 +267,7 @@ class PokerGame {
   }
 
   startNewHand() {
-    console.log('----- HAND STARTED -----');
+    // console.log('----- HAND STARTED -----');
 
     if (!this.isHandOver) {
       throw new Error(`Current hand hasn't finished yet.`);
@@ -322,15 +322,15 @@ class PokerGame {
     
 
     // set their bets and then unset their "hasPlayedThisRound" flag
-    console.log(`player: ${playerWhoIsSmallBlind.name}`);
-    console.log('SMALL BLIND');
+    // console.log(`player: ${playerWhoIsSmallBlind.name}`);
+    // console.log('SMALL BLIND');
     this.bet(playerWhoIsSmallBlind, Math.min(playerWhoIsSmallBlind.chips, this.smallBlind));
-    console.log('-- turn finished --');
+    // console.log('-- turn finished --');
 
-    console.log(`player: ${playerWhoIsBigBlind.name}`);
-    console.log('BIG BLIND');
+    // console.log(`player: ${playerWhoIsBigBlind.name}`);
+    // console.log('BIG BLIND');
     this.bet(playerWhoIsBigBlind, Math.min(playerWhoIsBigBlind.chips, this.bigBlind));
-    console.log('-- turn finished --');
+    // console.log('-- turn finished --');
 
     playerWhoIsSmallBlind.hasPlayedThisRound = false;
     playerWhoIsBigBlind.hasPlayedThisRound = false;
@@ -341,7 +341,7 @@ class PokerGame {
   }
 
   startNewRound() {
-    console.log('----- ROUND STARTED -----');
+    // console.log('----- ROUND STARTED -----');
 
     if (!this.isRoundOver) {
       throw new Error(`Current round hasn't finished yet.`);

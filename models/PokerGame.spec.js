@@ -43,7 +43,7 @@ function playHand(pokerGame, actions) {
 }
 
 describe('PokerGame', () => {
-  describe.skip('creating a new instance', () => {
+  describe('creating a new instance', () => {
     test('fails if less than 2 players passed', () => {
       expect(() => new PokerGame()).toThrowError('At least 2 players need to be present!');
       expect(() => new PokerGame([])).toThrowError('At least 2 players need to be present!');
@@ -86,7 +86,7 @@ describe('PokerGame', () => {
     });
   });
 
-  describe.skip('starting the first hand of the game', () => {
+  describe('starting the first hand of the game', () => {
     let pokerGame;
     let expectedSmallBlind;
     let expectedBigBlind;
@@ -135,7 +135,7 @@ describe('PokerGame', () => {
     });
   });
 
-  describe.skip('starting a new hand after previous hand has finished', () => {
+  describe('starting a new hand after previous hand has finished', () => {
     let pokerGame;
     let expectedSmallBlind
     let expectedBigBlind;
@@ -217,7 +217,7 @@ describe('PokerGame', () => {
     });
   });
 
-  describe.skip('staring a hand when small blind doesn\'t have enough chips', () => {
+  describe('staring a hand when small blind doesn\'t have enough chips', () => {
     let pokerGame;
     let playerSmall;
 
@@ -256,7 +256,7 @@ describe('PokerGame', () => {
     });
   });
 
-  describe.skip('starting a hand when big blind doesn\'t have enough chips', () => {
+  describe('starting a hand when big blind doesn\'t have enough chips', () => {
     let pokerGame;
     let playerBig;
 
@@ -295,84 +295,66 @@ describe('PokerGame', () => {
     });
   });
 
-  describe.skip('starting a hand when there are players who have 0 chips', () => {
-    let pokerGame;
+  test('starting a hand should remove players with 0 chips', () => {
+    let pokerGame = new PokerGame(['player1', 'player2', 'player3', 'player4', 'player5']);
 
-    beforeEach(() => {
-      pokerGame = new PokerGame(['player1', 'player2', 'player3', 'player4', 'player5']);
+    // set chips for player 2 & 4 to 0
+    pokerGame.players[1].chips = 0;
+    pokerGame.players[3].chips = 0;
 
-      // set chips for player 2 & 4 to 0
-      pokerGame.players[1].chips = 0;
-      pokerGame.players[3].chips = 0;
+    console.assert(pokerGame.players.length === 5);
 
-      console.assert(pokerGame.players.length === 5);
-    });
+    pokerGame.startNewHand();
+    expect(pokerGame.players).toHaveLength(3);
+    expect(pokerGame.players[0].name).toBe('player1');
+    expect(pokerGame.players[1].name).toBe('player3');
+    expect(pokerGame.players[2].name).toBe('player5');
+  });
+
+  test('starting a hand should throw error when only one player remains', () => {
+    let pokerGame = new PokerGame(['p1', 'p2', 'p3', 'p4']);
+
+    // set player 1 & 2's chips to 0
+    pokerGame.players[0].chips = 0;
+    pokerGame.players[1].chips = 0;
+    pokerGame.players[2].chips = 0;
+
+    expect(() => pokerGame.startNewHand()).toThrow('Only one player remaining.. Game over.');
+  });
+
+  test('starting a hand should throw an error when previous hand hasn\'t finished', async () => {
+    let pokerGame = new PokerGame(['dealer', 'small', 'big', 'first']);
+    pokerGame.startNewHand();
     
-    test('should remove players with no chips', () => {
-      pokerGame.startNewHand();
-      expect(pokerGame.players).toHaveLength(3);
-      expect(pokerGame.players[0].name).toBe('player1');
-      expect(pokerGame.players[1].name).toBe('player3');
-      expect(pokerGame.players[2].name).toBe('player5');
-    })
-  });
-
-  describe.skip('starting a hand when only one player remains', () => {
-    let pokerGame;
-
-    beforeEach(() => {
-      pokerGame = new PokerGame(['p1', 'p2', 'p3', 'p4']);
-
-      // set player 1 & 2's chips to 0
-      pokerGame.players[0].chips = 0;
-      pokerGame.players[1].chips = 0;
-      pokerGame.players[2].chips = 0;
-    });
-
-    test('should throw an error', () => {
-      expect(() => pokerGame.startNewHand()).toThrow('Only one player remaining.. Game over.');
-    });
-  });
-
-  describe.skip('starting a hand when previous hand hasn\'t finished', () => {
-    let pokerGame;
-
-    beforeEach(async () => {
-      pokerGame = new PokerGame(['dealer', 'small', 'big', 'first']);
-      pokerGame.startNewHand();
+    // first raises round one, dealer/small/big call, everyone checks after
+    // we hold of on last player checking on river though so the hand doesn't finish
+    await playHand(pokerGame, [
+      // pre-flop
+      () => pokerGame.raise(10),  // first
+      () => pokerGame.call(),     // dealer
+      () => pokerGame.call(),     // small
+      () => pokerGame.call(),     // big
+      // flop
+      () => pokerGame.check(),    // first
+      () => pokerGame.check(),    // dealer
+      () => pokerGame.check(),    // small
+      () => pokerGame.check(),    // big
+      // turn
+      () => pokerGame.check(),    // first
+      () => pokerGame.check(),    // dealer
+      () => pokerGame.check(),    // small
+      () => pokerGame.check(),    // big
+      // river
+      () => pokerGame.check(),    // first
+      () => pokerGame.check(),    // dealer
+      () => pokerGame.check(),    // small
+      // skipping big here so hand isn't over
+    ]);
       
-      // first raises round one, dealer/small/big call, everyone checks after
-      // we hold of on last player checking on river though so the hand doesn't finish
-      await playHand(pokerGame, [
-        // pre-flop
-        () => pokerGame.raise(10),  // first
-        () => pokerGame.call(),     // dealer
-        () => pokerGame.call(),     // small
-        () => pokerGame.call(),     // big
-        // flop
-        () => pokerGame.check(),    // first
-        () => pokerGame.check(),    // dealer
-        () => pokerGame.check(),    // small
-        () => pokerGame.check(),    // big
-        // turn
-        () => pokerGame.check(),    // first
-        () => pokerGame.check(),    // dealer
-        () => pokerGame.check(),    // small
-        () => pokerGame.check(),    // big
-        // river
-        () => pokerGame.check(),    // first
-        () => pokerGame.check(),    // dealer
-        () => pokerGame.check(),    // small
-        // skipping big here so hand isn't over
-      ]);
-    });
-
-    test('should throw an error', () => {
-      expect(() => pokerGame.startNewHand()).toThrow('Current hand hasn\'t finished yet.');
-    });
+    expect(() => pokerGame.startNewHand()).toThrow('Current hand hasn\'t finished yet.');
   });
 
-  describe.skip('starting a hand when not all pots have been awarded', () => {
+  describe('starting a hand when not all pots have been awarded', () => {
     let pokerGame;
 
     beforeEach(async () => {
@@ -411,17 +393,17 @@ describe('PokerGame', () => {
       console.assert(pokerGame.pots.length === 2);
     });
 
-    test.skip('should throw an error if no pots awarded', () => {
+    test('should throw an error if no pots awarded', () => {
       expect(() => pokerGame.startNewHand()).toThrow('There are still pots that haven\'t been awarded. Cannot start new hand until all pots have been awarded');
     });
 
-    test.skip('should throw an error if unawarded pots remain', () => {
+    test('should throw an error if unawarded pots remain', () => {
       pokerGame.awardPot(pokerGame.pots[0], [pokerGame.players[0]]);
 
       expect(() => pokerGame.startNewHand()).toThrow('There are still pots that haven\'t been awarded. Cannot start new hand until all pots have been awarded');
     });
 
-    test.skip('should succeed if all pots awarded', () => {
+    test('should succeed if all pots awarded', () => {
       pokerGame.awardPot(pokerGame.pots[0], [pokerGame.players[0]]);
       pokerGame.awardPot(pokerGame.pots[1], [pokerGame.players[0]]);
 
@@ -429,7 +411,7 @@ describe('PokerGame', () => {
     });
   });
 
-  describe.skip('starting a hand when there are 3 players', () => {
+  describe('starting a hand when there are 3 players', () => {
     let pokerGame;
     let expectedSmallBlind;
     let expectedBigBlind;
@@ -478,7 +460,7 @@ describe('PokerGame', () => {
     });
   });
 
-  describe.skip('starting a hand when there are only 2 players', () => {
+  describe('starting a hand when there are only 2 players', () => {
     let pokerGame;
     let dealer;
     let otherPlayer;
@@ -528,30 +510,114 @@ describe('PokerGame', () => {
 
   describe('big blind on pre-flop', () => {
     let pokerGame;
+    let playerBig;
     
     beforeEach(async () => {
       pokerGame = new PokerGame(['dealer', 'small', 'big', 'first']);
       pokerGame.startNewHand();
 
+      playerBig = pokerGame.players[2];
+      console.assert(playerBig.name === 'big');
+
       await playHand(pokerGame, [
         // pre-flop
-        () => pokerGame.call(),  // first
-        () => pokerGame.call(),  // dealer
-        () => pokerGame.call()  
+        () => pokerGame.call(),   // first
+        () => pokerGame.call(),   // dealer
+        () => pokerGame.call()    // small
       ]);
+
+      // still at pre-flop, currently big's turn
+    });
+
+    test('should finish round if big blind checks', () => {
+      let onRoundFinishedSpy = jest.fn();
+
+      pokerGame.subscribeToEvent(PokerGameEvents.ROUND_FINISHED, onRoundFinishedSpy);
+      pokerGame.check(); // big checks
+
+      expect(playerBig.betThisHand).toBe(pokerGame.bigBlind);
+      expect(playerBig.hasFolded).toBe(false);
+      expect(onRoundFinishedSpy).toHaveBeenCalled();
+    });
+
+    test('should continue with round if big blind raises', () => {
+      let onRoundFinishedSpy = jest.fn();
+
+      pokerGame.subscribeToEvent(PokerGameEvents.ROUND_FINISHED, onRoundFinishedSpy);
+      pokerGame.raise(10);
+
+      expect(playerBig.betThisHand).toBe(pokerGame.bigBlind + 10);
+      expect(playerBig.hasFolded).toBe(false);
+      expect(onRoundFinishedSpy).not.toHaveBeenCalled();
+
+      expect(pokerGame.isRoundOver).toBe(false);
+      expect(pokerGame.currentPlayer.name).toBe('first');
     });
   });
 
   describe('small blind on pre-flop', () => {
+    let pokerGame;
+    let playerSmall;
+    
+    beforeEach(async () => {
+      pokerGame = new PokerGame(['dealer', 'small', 'big', 'first'], 100, 5, 10);
+      pokerGame.startNewHand();
 
+      playerSmall = pokerGame.players[1];
+      console.assert(playerSmall.name === 'small');
+
+      await playHand(pokerGame, [
+        // pre-flop
+        () => pokerGame.call(),   // first
+        () => pokerGame.call()    // dealer
+      ]);
+
+      // still at pre-flop, currently small's turn
+    });
+
+    test('should allow small to fold', () => {
+      pokerGame.fold(); // small folds
+
+      expect(playerSmall.betThisHand).toBe(pokerGame.smallBlind);
+      expect(playerSmall.betThisRound).toBe(pokerGame.smallBlind);
+      expect(playerSmall.hasFolded).toBe(true);
+    });
+
+    test('should allow small to call for remainder of big blind', () => {
+      pokerGame.call() // small calls
+
+      expect(playerSmall.betThisHand).toBe(pokerGame.bigBlind);
+      expect(playerSmall.betThisRound).toBe(pokerGame.bigBlind);
+      expect(playerSmall.hasFolded).toBe(false);
+    });
+
+    test('should allow small to raise for more than remainder of big blind', () => {
+      pokerGame.raise(15); // small raises up to big blind + 10
+
+      expect(playerSmall.betThisHand).toBe(20);
+      expect(playerSmall.betThisRound).toBe(20);
+      expect(playerSmall.hasFolded).toBe(false);
+    });
+
+    test('should fail if small attempts to check', () => {
+      expect(() => pokerGame.check()).toThrow('Player must have a bet of at least 5 or go all in');
+    });
+
+    test('should fail if small attempts to raise less than remainder of big blind', () => {
+      expect(() => pokerGame.raise(1)).toThrow('Player must have a bet of at least 5 or go all in');
+    });
   });
 
-  describe('when small blind folds on pre-flop', () => {
+  test('should throw error when a player attempts to check on the pre-flop', async () => {
+    let pokerGame = new PokerGame(['dealer', 'small', 'big', 'first'], 100, 5, 10);
+    pokerGame.startNewHand();
 
-  });
+    // first - attempt to check initially then just fold
+    expect(() => pokerGame.check()).toThrow('Player must have a bet of at least 10 or go all in');
+    pokerGame.fold();
 
-  describe('when a player attempts to check on the pre-flop', () => {
-
+    // dealer - expect the same error when checking
+    expect(() => pokerGame.check()).toThrow('Player must have a bet of at least 10 or go all in');
   });
 
   describe('when a player attempts to check after a raise', () => {
@@ -594,7 +660,7 @@ describe('PokerGame', () => {
     // river: 2 raises, 3 raises, 4 raises, 2 folds, 3 calls
   });
 
-  describe.skip('when all players go all in', () => {
+  describe('when all players go all in', () => {
     let pokerGame;
 
     beforeEach(async () => {
