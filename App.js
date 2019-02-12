@@ -1,10 +1,12 @@
 import { createStackNavigator, createAppContainer } from 'react-navigation';
 
 // components
+import HomeScreen from './components/HomeScreen';
 import NewGameScreen from './components/NewGameScreen';
 
 const MainNavigator = createStackNavigator({
-  Home: {screen: NewGameScreen}
+  Home: {screen: HomeScreen},
+  NewGameScreen: {screen: NewGameScreen}
 });
 
 const App = createAppContainer(MainNavigator);
