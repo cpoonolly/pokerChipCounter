@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import { StyleSheet, Text, TextInput, FlatList, ScrollView, View } from 'react-native';
+import { StyleSheet, Button, Text, TextInput, FlatList, ScrollView, View } from 'react-native';
 
 export default class NewGameScreen extends React.Component {
   constructor(props) {
@@ -77,8 +77,8 @@ export default class NewGameScreen extends React.Component {
     this.validateForm();
   }
 
-  onAddPlayerClick() {
-    let newPlayerId = this.LAST_PLAYER_ID++;
+  onAddPlayer() {
+    let newPlayerId = ++this.LAST_PLAYER_ID;
     let newPlayer = {id: newPlayerId, name: `Player ${newPlayerId}`};
 
     this.setState((prevState) => ({
@@ -88,21 +88,29 @@ export default class NewGameScreen extends React.Component {
     this.validateForm();
   }
 
-  onRemovePlayerClick(playerId) {
+  onRemovePlayer(playerId) {
     this.setState((prevState) => ({
-      players: _.filter(prevState.players, {id: playerId})
+      players: _.reject(prevState.players, {id: playerId})
     }));
 
     this.validateForm();
   }
 
+  onStartGameClick() {
+    console.log('Start Game!');
+  }
+
   render() {
     return (
-      <ScrollView contentContainerStyle={styles.mainView}>
-        {this.renderNumericInput('chipsPerPlayer', 'Chips Per Player:')}
-        {this.renderNumericInput('bigBlind', 'Big Blind:')}
-        {this.renderNumericInput('smallBlind', 'Small Blind:')}
-      </ScrollView>
+      <View contentContainerStyle={styles.mainView}>
+        <ScrollView>
+          {this.renderNumericInput('chipsPerPlayer', 'Chips Per Player:')}
+          {this.renderNumericInput('bigBlind', 'Big Blind:')}
+          {this.renderNumericInput('smallBlind', 'Small Blind:')}
+          {this.renderPlayerList()}
+          {this.renderStartGameButton()}
+        </ScrollView>
+      </View>
     );
   }
 
@@ -123,19 +131,20 @@ export default class NewGameScreen extends React.Component {
   }
 
   renderPlayerList() {
-
-  
     return (
       <View style={styles.playerListView}>
-        <Button
-          title='Add Player'
-          color='#26a69a'
-          onPress={() => this.onAddPlayerClick()}
-        ></Button>
-        <FlatList
-          data={this.state.players}
-          renderItem={((player) => this.renderPlayer(player))}
-        ></FlatList>
+        <View style={styles.addPlayerBtnWrap}>
+          <Button
+            title='+ Add Player'
+            color='#26a69a'
+            onPress={() => this.onAddPlayer()}
+          ></Button>
+        </View>
+        {_.map(this.state.players, (player) => (
+          <View key={player.id} style={styles.playerView}>
+            {this.renderPlayer(player)}
+          </View>
+        ))}
       </View>
     );
   }
@@ -143,9 +152,30 @@ export default class NewGameScreen extends React.Component {
   renderPlayer(player) {
     return (
       <View style={styles.playerView}>
-        
+        <Button
+          title='-'
+          color='#78909c'
+          onPress={() => this.onRemovePlayer(player.id)}
+        ></Button>
+        <TextInput 
+          style={styles.editPlayerNameInput}
+          value={player.name}
+          onChangeText={(newText) => this.onPlayerNameChange(player.id, newText)}
+        ></TextInput>
       </View>
-    )
+    );
+  }
+
+  renderStartGameButton() {
+    return (
+      <View style={styles.startGameBtnWrap}>
+        <Button
+          title='Start Game'
+          color='#26a69a'
+          onPress={() => this.onStartGameClick()}
+        ></Button>
+      </View>
+    );
   }
 }
 
@@ -153,12 +183,11 @@ const styles = StyleSheet.create({
   mainView: {
     flex: 1,
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'flex-start',
   },
   numericInputView: {
-    height: 50,
-    marginTop: 20,
+    margin: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -168,12 +197,25 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   numericInputInput: {
-    fontSize: 28
+    fontSize: 28,
   },
   playerListView: {
-
+    margin: 20,
   },
   playerView: {
-
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginTop: 10,
+  },
+  addPlayerBtnWrap: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  editPlayerNameInput: {
+    fontSize: 20,
+    marginLeft: 20,
+  },
+  startGameBtnWrap: {
+    margin: 20,
   }
 });
