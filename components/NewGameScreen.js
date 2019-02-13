@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import { StyleSheet, Button, Text, TextInput, FlatList, ScrollView, View } from 'react-native';
+import { StyleSheet, Button, Text, TextInput, ScrollView, View } from 'react-native';
 
 export default class NewGameScreen extends React.Component {
   constructor(props) {
@@ -21,6 +21,7 @@ export default class NewGameScreen extends React.Component {
   }
 
   validateForm() {
+    console.log('validateForm()');
     this.setState((newState) => {
       let isValid = true;
       let formErrors = {
@@ -56,13 +57,19 @@ export default class NewGameScreen extends React.Component {
         isValid = false;
       }
 
-      return {isValid: isValid, errors: formErrors};
+      console.log(`newState.chipsPerPlayer: ${newState.chipsPerPlayer}`);
+      console.log(`newState.bigBlind: ${newState.bigBlind}`);
+      console.log(`newState.smallBlind: ${newState.smallBlind}`);
+      console.log(`newState.players.length: ${newState.players.length}`);
+      console.log(`numUniqPlayerNames: ${numUniqPlayerNames}`);
+
+      return {form: {isValid: isValid, errors: formErrors}};
     });
   }
 
   onNumericInputChanged(inputName, newText) {
     this.setState({
-      [inputName]: parseInt(newText.replace(/[^0-9]/g, ''))
+      [inputName]: parseInt(newText.replace(/[^0-9]/g, '')) || 0
     });
     this.validateForm();
   }
@@ -105,10 +112,19 @@ export default class NewGameScreen extends React.Component {
       <View contentContainerStyle={styles.mainView}>
         <ScrollView>
           {this.renderNumericInput('chipsPerPlayer', 'Chips Per Player:')}
+          {this.renderFormErrors('chipsPerPlayer')}
+
           {this.renderNumericInput('bigBlind', 'Big Blind:')}
+          {this.renderFormErrors('bigBlind')}
+
           {this.renderNumericInput('smallBlind', 'Small Blind:')}
+          {this.renderFormErrors('smallBlind')}
+
           {this.renderPlayerList()}
+          {this.renderFormErrors('players')}
+
           {this.renderStartGameButton()}
+          {/* <Text>{JSON.stringify(this.state)}</Text> */}
         </ScrollView>
       </View>
     );
@@ -172,10 +188,27 @@ export default class NewGameScreen extends React.Component {
         <Button
           title='Start Game'
           color='#26a69a'
+          disabled={!this.state.form.isValid}
           onPress={() => this.onStartGameClick()}
         ></Button>
       </View>
     );
+  }
+
+  renderFormErrors(inputName) {
+    const formErrors = this.state.form.errors[inputName] || [];
+
+    if (_.isEmpty(formErrors)) {
+      return;
+    }
+
+    return (
+      <View style={styles.formErrors}>
+        {_.map(formErrors, (errorMsg) => (
+          <Text key={errorMsg} style={styles.formError}>{errorMsg}</Text>
+        ))}
+      </View>
+    )
   }
 }
 
@@ -217,5 +250,11 @@ const styles = StyleSheet.create({
   },
   startGameBtnWrap: {
     margin: 20,
+  },
+  formErrors: {
+    marginLeft: 20,
+  },
+  formError: {
+    color: 'red'
   }
 });
