@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import { StyleSheet, Button, Text, TextInput, ScrollView, View } from 'react-native';
+import { StyleSheet, Button, Text, TextInput, ScrollView, View, KeyboardAvoidingView } from 'react-native';
 
 export default class NewGameScreen extends React.Component {
   constructor(props) {
@@ -109,7 +109,7 @@ export default class NewGameScreen extends React.Component {
 
   render() {
     return (
-      <View contentContainerStyle={styles.mainView}>
+      <KeyboardAvoidingView contentContainerStyle={styles.mainView} behavior="height" enabled>
         <ScrollView>
           {this.renderNumericInput('chipsPerPlayer', 'Chips Per Player:')}
           {this.renderFormErrors('chipsPerPlayer')}
@@ -126,7 +126,7 @@ export default class NewGameScreen extends React.Component {
           {this.renderStartGameButton()}
           {/* <Text>{JSON.stringify(this.state)}</Text> */}
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
