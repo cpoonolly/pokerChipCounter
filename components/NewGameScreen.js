@@ -104,7 +104,12 @@ export default class NewGameScreen extends React.Component {
   }
 
   onStartGameClick() {
-    console.log('Start Game!');
+    this.props.navigation.push('GameScreen', {
+      chipsPerPlayer: this.state.chipsPerPlayer,
+      bigBlind: this.state.bigBlind,
+      smallBlind: this.state.smallBlind,
+      playersNames: _.map(this.state.players, 'name')
+    });
   }
 
   render() {
