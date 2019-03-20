@@ -20,7 +20,6 @@ export default class HomeScreen extends React.Component {
   }
 
   onNewGameBtnPress() {
-    console.log('New Game!');
     this.props.navigation.navigate('NewGameScreen');
   }
 

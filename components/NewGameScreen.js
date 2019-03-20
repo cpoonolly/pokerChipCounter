@@ -21,7 +21,7 @@ export default class NewGameScreen extends React.Component {
   }
 
   validateForm() {
-    console.log('validateForm()');
+    // console.log('validateForm()');
     this.setState((newState) => {
       let isValid = true;
       let formErrors = {
@@ -57,11 +57,11 @@ export default class NewGameScreen extends React.Component {
         isValid = false;
       }
 
-      console.log(`newState.chipsPerPlayer: ${newState.chipsPerPlayer}`);
-      console.log(`newState.bigBlind: ${newState.bigBlind}`);
-      console.log(`newState.smallBlind: ${newState.smallBlind}`);
-      console.log(`newState.players.length: ${newState.players.length}`);
-      console.log(`numUniqPlayerNames: ${numUniqPlayerNames}`);
+      // console.log(`newState.chipsPerPlayer: ${newState.chipsPerPlayer}`);
+      // console.log(`newState.bigBlind: ${newState.bigBlind}`);
+      // console.log(`newState.smallBlind: ${newState.smallBlind}`);
+      // console.log(`newState.players.length: ${newState.players.length}`);
+      // console.log(`numUniqPlayerNames: ${numUniqPlayerNames}`);
 
       return {form: {isValid: isValid, errors: formErrors}};
     });
