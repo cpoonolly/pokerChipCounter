@@ -2,6 +2,8 @@ import React from 'react';
 import _ from 'lodash';
 import { StyleSheet, Button, Text, TextInput, ScrollView, View, KeyboardAvoidingView } from 'react-native';
 
+const MAX_PLAYER_COUNT = 12;
+
 export default class NewGameScreen extends React.Component {
   constructor(props) {
     super(props);
@@ -85,6 +87,8 @@ export default class NewGameScreen extends React.Component {
   }
 
   onAddPlayer() {
+    if (this.state.players.length >= MAX_PLAYER_COUNT) return;
+
     let newPlayerId = ++this.LAST_PLAYER_ID;
     let newPlayer = {id: newPlayerId, name: `Player ${newPlayerId}`};
 
