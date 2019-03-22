@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import { StyleSheet, Button, Text, TextInput, ScrollView, View, KeyboardAvoidingView } from 'react-native';
 
-const MAX_PLAYER_COUNT = 12;
+const MAX_PLAYER_COUNT = 9;
 
 export default class NewGameScreen extends React.Component {
   constructor(props) {

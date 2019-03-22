@@ -1,13 +1,15 @@
 import React from 'react';
 import _ from 'lodash';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions } from 'react-native';
 import Svg from 'react-native-svg';
 
 import { PokerGame } from '../models/PokerGame';
 import PokerTable from './PokerTable'
 import PokerPlayerAvatar from './PokerPlayerAvatar';
+import PokerPlayerBet from './PokerPlayerBet';
 
-const { Defs } = Svg;
+const { Defs, Rect, LinearGradient, Stop, Image } = Svg;
+const BACKGROUND_GRADIENT_ID = 'background_gradient_id';
 
 export default class GameScreen extends React.Component {
   constructor(props) {
@@ -45,6 +47,7 @@ export default class GameScreen extends React.Component {
   renderDefs() {
     return (
       <Defs>
+        {this.renderBackgroundDefs()}
         {PokerTable.renderDefs()}
         {PokerPlayerAvatar.renderDefs()}
       </Defs>
@@ -94,25 +97,72 @@ export default class GameScreen extends React.Component {
           let yPos = this.state.padding + (isOnLeftSide ? yPaddingLeft * (playerIndex + 1) : yPaddingRight * (playerIndex - numPlayersOnLeft + 1));
 
           return (
-            <PokerPlayerAvatar
-              key={player.name}
-              pokerGame={pokerGame}
-              player={player}
-              x={xPos}
-              y={yPos}
-              radius={30}
-            ></PokerPlayerAvatar>
+            <React.Fragment key={player.name}>
+              <PokerPlayerAvatar
+                pokerGame={pokerGame}
+                player={player}
+                x={xPos}
+                y={yPos}
+                radius={20}
+              ></PokerPlayerAvatar>
+              <PokerPlayerBet
+                playerXPos={xPos}
+                playerYPos={yPos}
+                offset={30}
+                width={30}
+                height={30}
+                isOnLeftSide={isOnLeftSide}
+                player={player}
+                pokerGame={pokerGame}
+              ></PokerPlayerBet>
+
+              {/* <Image
+                x={isOnLeftSide ? xPos + 20 + 10: xPos - 20 - 10 - 30}
+                y={yPos - 15}
+                width={30}
+                height={30}
+                href={require('../assets/chips.png')}
+              />
+              <Image
+                x={isOnLeftSide ? xPos + 20 + 10 - 5: xPos - 20 - 10 - 30 + 5}
+                y={yPos - 15 + 5}
+                width={30}
+                height={30}
+                href={require('../assets/chips.png')}
+              />
+              <Image
+                x={isOnLeftSide ? xPos + 20 + 10 - 10: xPos - 20 - 10 - 30 + 10}
+                y={yPos - 15 + 10}
+                width={30}
+                height={30}
+                href={require('../assets/chips.png')}
+              /> */}
+            </React.Fragment>
           );
         })}
       </React.Fragment>
     );
   }
 
+  renderBackground() {
+    return (<Rect width="100%" height="100%" fill={`url(#${BACKGROUND_GRADIENT_ID})`}/>)
+  }
+
+  renderBackgroundDefs() {
+    return (
+      <LinearGradient id={BACKGROUND_GRADIENT_ID} x1="0" y1="0" x2="100%" y2="100%">
+        <Stop offset="0" stopColor="rgb(56,56,56)" stopOpacity="1"/>
+        <Stop offset="100" stopColor="rgb(20,20,20)" stopOpacity="1"/>
+      </LinearGradient>
+    );
+  }
+
   render() {
     return (
       <View>
-        <Svg width={this.state.width} height={this.state.height}>
+        <Svg width={this.state.width} height={this.state.height} fill="black">
           {this.renderDefs()}
+          {this.renderBackground()}
           {this.renderTable()}
           {this.renderPlayers()}
         </Svg>
