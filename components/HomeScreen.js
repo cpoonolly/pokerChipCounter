@@ -47,7 +47,7 @@ export default class HomeScreen extends React.Component {
 
     return (
       <Animated.Image 
-        source={require('../assets/poker-chip.png')} 
+        source={require('../assets/logo.png')} 
         style={[styles.pokerWheelImg, pokerWheelAnimatedStyle]}
       />
     );

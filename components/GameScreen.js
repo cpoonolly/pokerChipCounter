@@ -7,8 +7,9 @@ import { PokerGame } from '../models/PokerGame';
 import PokerTable from './PokerTable'
 import PokerPlayerAvatar from './PokerPlayerAvatar';
 import PokerPlayerBet from './PokerPlayerBet';
+import PokerPot from './PokerPot';
 
-const { Defs, Rect, LinearGradient, Stop, Image } = Svg;
+const { Defs, Rect, LinearGradient, Stop } = Svg;
 const BACKGROUND_GRADIENT_ID = 'background_gradient_id';
 
 export default class GameScreen extends React.Component {
@@ -41,6 +42,7 @@ export default class GameScreen extends React.Component {
   componentDidMount() {
     const {width, height} = Dimensions.get('window');
 
+    this.pokerGame.startNewHand();
     this.setState({width: width, height: height - 50});
   }
 
@@ -67,6 +69,26 @@ export default class GameScreen extends React.Component {
         width={tableWidth}
         borderRadius={50}
       ></PokerTable>
+    );
+  }
+
+  renderPot() {
+    const pokerGame = this.pokerGame;
+    if (pokerGame.pots.length < 1) {
+      return (null);
+    }
+
+    let mainPot = pokerGame.pots[0];
+
+    return (
+      <PokerPot
+        x={this.state.width / 2}
+        y={this.state.height / 2}
+        width={30}
+        height={30}
+        pokerGame={this.pokerGame}
+        pot={mainPot}
+      ></PokerPot>
     );
   }
   
@@ -115,28 +137,6 @@ export default class GameScreen extends React.Component {
                 player={player}
                 pokerGame={pokerGame}
               ></PokerPlayerBet>
-
-              {/* <Image
-                x={isOnLeftSide ? xPos + 20 + 10: xPos - 20 - 10 - 30}
-                y={yPos - 15}
-                width={30}
-                height={30}
-                href={require('../assets/chips.png')}
-              />
-              <Image
-                x={isOnLeftSide ? xPos + 20 + 10 - 5: xPos - 20 - 10 - 30 + 5}
-                y={yPos - 15 + 5}
-                width={30}
-                height={30}
-                href={require('../assets/chips.png')}
-              />
-              <Image
-                x={isOnLeftSide ? xPos + 20 + 10 - 10: xPos - 20 - 10 - 30 + 10}
-                y={yPos - 15 + 10}
-                width={30}
-                height={30}
-                href={require('../assets/chips.png')}
-              /> */}
             </React.Fragment>
           );
         })}
@@ -165,6 +165,7 @@ export default class GameScreen extends React.Component {
           {this.renderBackground()}
           {this.renderTable()}
           {this.renderPlayers()}
+          {this.renderPot()}
         </Svg>
       </View>
     );

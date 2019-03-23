@@ -2,26 +2,11 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import Svg from 'react-native-svg';
 
+import { formatChipsText } from '../utils/utils'
+
 const { Circle, G, Text, LinearGradient, Stop } = Svg;
 
 const AVATAR_FILL_GRADIENT_ID = 'avatar_fill_gradient_id';
-
-function round(value, precision) {
-  var multiplier = Math.pow(10, precision || 0);
-  return Math.round(value * multiplier) / multiplier;
-}
-
-function formatChipsText(chips) {
-  if (chips > 10E9) {
-    return `$${round(chips / 10E9, 1)}B`;
-  } else if (chips > 10E6) {
-    return `$${round(chips / 10E6, 1)}M`;
-  } else if (chips > 10E3) {
-    return `$${round(chips / 10E3, 1)}k`;
-  } else {
-    return `$${round(chips, 1)}`;
-  }
-}
 
 export default class PokerPlayerAvatar extends React.Component {
   constructor(props) {
@@ -38,9 +23,11 @@ export default class PokerPlayerAvatar extends React.Component {
   }
 
   render() {
-    const { x, y, radius, player } = this.props;
-    const fontSizePlayerName = 18;
+    const { x, y, radius, player, pokerGame } = this.props;
+    const fontSizePlayerName = 14;
     const chipCountFontSize = 8;
+
+    let isCurrentPlayer = (pokerGame.currentPlayer === player);
 
     return (
       <G>
@@ -49,6 +36,8 @@ export default class PokerPlayerAvatar extends React.Component {
           cy={y}
           r={radius}
           fill={`url(#${AVATAR_FILL_GRADIENT_ID})`}
+          stroke={isCurrentPlayer ? '#ffda0c' : 'none'}
+          strokeWidth={5}
         ></Circle>
         <Text 
           x={x}

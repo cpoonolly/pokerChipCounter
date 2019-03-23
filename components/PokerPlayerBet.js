@@ -2,73 +2,74 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import Svg from 'react-native-svg';
 
-const { Text, Image } = Svg;
+import { formatChipsText } from '../utils/utils'
+
+const { Text, Image, Rect } = Svg;
 
 export default class PokerPlayerBet extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  render() {
+  renderHasFolded() {
+    const {playerXPos, playerYPos, offset, width, height, isOnLeftSide} = this.props;
+    
+    let imgX = (isOnLeftSide ? playerXPos + offset : playerXPos - offset - width);
+    let imgY = (playerYPos - (height / 2));
+    
+    return (
+      <Image
+        x={imgX}
+        y={imgY}
+        width={width}
+        height={height}
+        href={require('../assets/folded.png')}
+      />
+    );
+  }
+
+  renderBet() {
     const {playerXPos, playerYPos, offset, width, height, isOnLeftSide, player} = this.props;
-    let x, y;
+    
+    let imgX = (isOnLeftSide ? playerXPos + offset : playerXPos - offset - width);
+    let imgY = (playerYPos - (height / 2));
 
-    let bet = 1; //player.betThisRound;
-    let pctOfChipsBet = 100; // bet / (player.chips + bet);
-
-    if (player.hasFolded || true) {
-      x = (isOnLeftSide ? playerXPos + offset : playerXPos - offset);
-      y = (playerYPos);
-
-      return (
-        <Text
-          x={x}
-          y={y}
-          fill="#ffda0c"
-          fontSize={10}
-          fontWeight="bold"
-          textAnchor={isOnLeftSide ? 'start' : 'end'}
-        >
-          Folded
-        </Text>
-      );
-    }
-
-    x = (isOnLeftSide ? playerXPos + offset : playerXPos - offset - width);
-    y = (playerYPos - (height / 2));
-
+    let textX = imgX + (width / 2);
+    let textY = imgY + height + 5;
+    
     return (
       <React.Fragment>
-        {pctOfChipsBet <= 0 ? null :
-          <Image
-            x={x}
-            y={y}
-            width={width}
-            height={width}
-            href={require('../assets/chips.png')}
-          />
-        }
-        {pctOfChipsBet < 33 ? null :
-          <Image
-            x={x}
-            y={y + 5}
-            width={width}
-            height={width}
-            href={require('../assets/chips.png')}
-          />
-        }
-        {pctOfChipsBet < 66 ? null :
-          <Image
-            x={x}
-            y={y + 10}
-            width={width}
-            height={width}
-            href={require('../assets/chips.png')}
-          />
-        }
-
+        <Image
+          x={imgX}
+          y={imgY}
+          width={width}
+          height={height}
+          href={require('../assets/chips.png')}
+        />
+        <Text
+          x={textX}
+          y={textY}
+          fill="white"
+          fontSize={8}
+          fontWeight="bold"
+          textAnchor='middle'
+        >
+          {formatChipsText(player.betThisRound)}
+        </Text> 
       </React.Fragment>
-    )
+    );
+  }
+
+  render() {
+    const {player} = this.props;
+
+    if (player.hasFolded) {
+      return this.renderHasFolded();
+    } else if (player.betThisRound > 0) {
+      return this.renderBet();
+    } else {
+      return (null);
+    }
   }
 }
 
