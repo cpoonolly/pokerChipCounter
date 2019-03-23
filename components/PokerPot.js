@@ -6,13 +6,17 @@ import { formatChipsText } from '../utils/utils'
 
 const { G, Image, Text } = Svg;
 
+const POKER_POT_CHIP_IMG_SIZE = 30;
+
 export default class PokerPot extends React.Component {
   constructor(props) {
     super(props);
   }
 
   renderChipsImg(xOffset = 0, yOffset = 0) {
-    const { x, y, width, height } = this.props;
+    const { x, y } = this.props;
+    const width = height = POKER_POT_CHIP_IMG_SIZE;
+
     let xPos = x - (width / 2) + xOffset;
     let yPos = y + (-1 * height / 2) + yOffset;
 

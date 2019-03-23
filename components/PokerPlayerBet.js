@@ -4,7 +4,9 @@ import Svg from 'react-native-svg';
 
 import { formatChipsText } from '../utils/utils'
 
-const { Text, Image, Rect } = Svg;
+const { Text, Image } = Svg;
+
+const POKER_PLAYER_CHIP_IMG_SIZE = 30;
 
 export default class PokerPlayerBet extends React.Component {
   constructor(props) {
@@ -12,7 +14,8 @@ export default class PokerPlayerBet extends React.Component {
   }
 
   renderHasFolded() {
-    const {playerXPos, playerYPos, offset, width, height, isOnLeftSide} = this.props;
+    const {playerXPos, playerYPos, offset, isOnLeftSide} = this.props;
+    const width = height = POKER_PLAYER_CHIP_IMG_SIZE;
     
     let imgX = (isOnLeftSide ? playerXPos + offset : playerXPos - offset - width);
     let imgY = (playerYPos - (height / 2));
@@ -29,7 +32,8 @@ export default class PokerPlayerBet extends React.Component {
   }
 
   renderBet() {
-    const {playerXPos, playerYPos, offset, width, height, isOnLeftSide, player} = this.props;
+    const {playerXPos, playerYPos, offset, isOnLeftSide, player} = this.props;
+    const width = height = POKER_PLAYER_CHIP_IMG_SIZE;
     
     let imgX = (isOnLeftSide ? playerXPos + offset : playerXPos - offset - width);
     let imgY = (playerYPos - (height / 2));
@@ -55,7 +59,7 @@ export default class PokerPlayerBet extends React.Component {
           textAnchor='middle'
         >
           {formatChipsText(player.betThisRound)}
-        </Text> 
+        </Text>
       </React.Fragment>
     );
   }

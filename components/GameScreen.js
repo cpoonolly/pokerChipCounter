@@ -8,6 +8,7 @@ import PokerTable from './PokerTable'
 import PokerPlayerAvatar from './PokerPlayerAvatar';
 import PokerPlayerBet from './PokerPlayerBet';
 import PokerPot from './PokerPot';
+import PokerCards from './PokerCards';
 
 const { Defs, Rect, LinearGradient, Stop } = Svg;
 const BACKGROUND_GRADIENT_ID = 'background_gradient_id';
@@ -72,23 +73,37 @@ export default class GameScreen extends React.Component {
     );
   }
 
-  renderPot() {
+  renderPots() {
     const pokerGame = this.pokerGame;
     if (pokerGame.pots.length < 1) {
       return (null);
     }
 
-    let mainPot = pokerGame.pots[0];
+    let xPos = this.state.width / 2;
+    let yPos = this.state.height / 2;
 
     return (
-      <PokerPot
+      <React.Fragment>
+        {pokerGame.pots.map((pot, index) => (
+          <PokerPot
+            key={`pot_${index}`}
+            x={xPos}
+            y={yPos - (index * 80)}
+            pokerGame={this.pokerGame}
+            pot={pot}
+          ></PokerPot>
+        ))}
+      </React.Fragment>
+    );
+  }
+
+  renderCards() {
+    return (
+      <PokerCards
         x={this.state.width / 2}
-        y={this.state.height / 2}
-        width={30}
-        height={30}
+        y={(this.state.height / 2) + 100}
         pokerGame={this.pokerGame}
-        pot={mainPot}
-      ></PokerPot>
+      ></PokerCards>
     );
   }
   
@@ -131,8 +146,6 @@ export default class GameScreen extends React.Component {
                 playerXPos={xPos}
                 playerYPos={yPos}
                 offset={30}
-                width={30}
-                height={30}
                 isOnLeftSide={isOnLeftSide}
                 player={player}
                 pokerGame={pokerGame}
@@ -165,7 +178,8 @@ export default class GameScreen extends React.Component {
           {this.renderBackground()}
           {this.renderTable()}
           {this.renderPlayers()}
-          {this.renderPot()}
+          {this.renderPots()}
+          {this.renderCards()}
         </Svg>
       </View>
     );

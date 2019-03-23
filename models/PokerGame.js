@@ -20,6 +20,21 @@ const PokerGameEvents = Object.freeze({
   HAND_FINISHED: Symbol('HAND_FINISHED')
 });
 
+function labelForRoundsOfHand(roundOfHand) {
+  switch (roundOfHand) {
+    case RoundsOfAHand.PRE_FLOP:
+      return 'Pre-Flop';
+    case RoundsOfAHand.FLOP:
+      return 'Flop';
+    case RoundsOfAHand.TURN:
+      return 'Turn';
+    case RoundsOfAHand.RIVER:
+      return 'River';
+    default:
+      return '';
+  }
+}
+
 class Player {
   constructor(name, chips) {
     this.name = name;
@@ -407,4 +422,4 @@ class PokerGame {
   }
 }
 
-export { PokerGame, Player, Pot, RoundsOfAHand, RoundsOfAHandOrdered, PokerGameEvents }
+export { PokerGame, Player, Pot, RoundsOfAHand, RoundsOfAHandOrdered, PokerGameEvents, labelForRoundsOfHand }
