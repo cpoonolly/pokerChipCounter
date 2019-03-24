@@ -88,10 +88,10 @@ export default class RaiseModal extends React.Component {
           </View>
         </View>
         <View style={styles.raiseModalErrors}>
-            {formErrors.map((errorMsg) => (
-              <Text key={errorMsg} style={styles.formError}>{errorMsg}</Text>
-            ))}
-          </View>
+          {formErrors.map((errorMsg) => (
+            <Text key={errorMsg} style={styles.formError}>{errorMsg}</Text>
+          ))}
+        </View>
       </React.Fragment>
     );
   }

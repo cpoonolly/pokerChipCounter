@@ -11,6 +11,7 @@ import PokerPlayerBet from './PokerPlayerBet';
 import PokerPot from './PokerPot';
 import PokerCards from './PokerCards';
 import RaiseModal from './RaiseModal';
+import AwardPotModal from './AwardPotModal'
 
 const { Defs, Rect, Stop } = Svg;
 
@@ -269,6 +270,8 @@ export default class GameScreen extends React.Component {
       return (null);
     }
 
+    console.log(`showRaiseModal=${this.state.showRaiseModal}\tshowAwardPotModal=${this.state.showAwardPotModal}`);
+
     return (
       <View style={styles.actionModalContainer}>
         <LinearGradient
@@ -283,7 +286,9 @@ export default class GameScreen extends React.Component {
             ></RaiseModal>
           : null}
           {this.state.showAwardPotModal ? 
-            null
+            <AwardPotModal
+              pokerGame={this.pokerGame}
+            ></AwardPotModal>
           : null}
         </LinearGradient>
       </View>
@@ -298,8 +303,6 @@ export default class GameScreen extends React.Component {
     if (!this.pokerGame || !this.pokerGame.round) {
       return (null);
     }
-
-    console.log(`state: {showRaiseModal: ${this.state.showRaiseModal}, showAwardPotModal: ${this.state.showAwardPotModal}}`);
 
     return (
       <View>
