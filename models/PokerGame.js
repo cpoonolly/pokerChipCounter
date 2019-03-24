@@ -111,21 +111,21 @@ class PokerGame {
 
   subscribeToEvent(pokerGameEvent, callback) {
     let subscribers = this.subscribersByEvent[pokerGameEvent];
-    console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
+    // console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
 
     subscribers.add(callback);
   }
 
   notifyForEvent(pokerGameEvent) {
     let subscribers = this.subscribersByEvent[pokerGameEvent];
-    console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
+    // console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
     
     subscribers.forEach((callback) => callback(pokerGameEvent));
   }
 
   unsubscribeToEvent(pokerGameEvent, callback) {
     let subscribers = this.subscribersByEvent[pokerGameEvent];
-    console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
+    // console.assert(!_.isUndefined(subscribers), 'Invalid PokerGameEvent');
 
     subscribers.delete(callback);
   }
@@ -201,7 +201,7 @@ class PokerGame {
 
     // // console.log(`next player: ${nextPlayer.name}`);
 
-    // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
+    // // console.assert(nextPlayer.betThisHand > this.highestBetThisHand, 'something went wrong...');
 
     // hand is automatically over because everyone else has folded
     if (nextPlayer === this.currentPlayer) {
