@@ -1,17 +1,22 @@
 import React from 'react';
 import _ from 'lodash';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions, Button, TextInput } from 'react-native';
+import { LinearGradient } from 'expo';
 import Svg from 'react-native-svg';
 
-import { PokerGame } from '../models/PokerGame';
+import { PokerGame, PokerGameEvents } from '../models/PokerGame';
 import PokerTable from './PokerTable'
 import PokerPlayerAvatar from './PokerPlayerAvatar';
 import PokerPlayerBet from './PokerPlayerBet';
 import PokerPot from './PokerPot';
 import PokerCards from './PokerCards';
+import RaiseModal from './RaiseModal';
 
-const { Defs, Rect, LinearGradient, Stop } = Svg;
+const { Defs, Rect, Stop } = Svg;
+
 const BACKGROUND_GRADIENT_ID = 'background_gradient_id';
+const TABLE_BORDER_RADIUS = 50;
+const TABLE_PADDING = 50;
 
 export default class GameScreen extends React.Component {
   constructor(props) {
@@ -20,7 +25,8 @@ export default class GameScreen extends React.Component {
     this.state = {
       width: 0,
       height: 0,
-      padding: 50
+      showRaiseModal: false,
+      showAwardPotModal: false,
     };
 
     const { navigation } = this.props;
@@ -33,18 +39,58 @@ export default class GameScreen extends React.Component {
   }
 
   getTableWidth() {
-    return this.state.width - (2 * this.state.padding);
+    return this.state.width - (2 * TABLE_PADDING);
   }
 
   getTableHeight() {
-    return this.state.height - (2 * this.state.padding);
+    return this.state.height - (2 * TABLE_PADDING);
   }
 
   componentDidMount() {
     const {width, height} = Dimensions.get('window');
 
+    this.pokerGame.subscribeToEvent(PokerGameEvents.TURN_FINISHED, () => this.onTurnEnd());
+    this.pokerGame.subscribeToEvent(PokerGameEvents.ROUND_FINISHED, () => this.onRoundEnd());
+    this.pokerGame.subscribeToEvent(PokerGameEvents.HAND_FINISHED, () => this.onHandEnd());
+
     this.pokerGame.startNewHand();
     this.setState({width: width, height: height - 50});
+  }
+
+  onCheck() {
+    console.log('Check!');
+    this.pokerGame.check();
+  }
+
+  onCall() {
+    console.log('Call!');
+    this.pokerGame.call();
+  }
+
+  onRaise() {
+    console.log('Raise!');
+    this.setState(() => ({showRaiseModal: true}));
+  }
+
+  onFold() {
+    console.log('Fold!');
+    this.pokerGame.fold();
+  }
+
+  onTurnEnd() {
+    console.log('Turn End!');
+    this.setState(() => ({showRaiseModal: false, showAwardPotModal: false}));
+  }
+
+  onRoundEnd() {
+    console.log('Round End!');
+    this.pokerGame.startNewRound();
+    this.setState(() => ({showRaiseModal: false, showAwardPotModal: false}));
+  }
+
+  onHandEnd() {
+    console.log('Hand End!');
+    this.setState(() => ({showRaiseModal: false, showAwardPotModal: true})); 
   }
 
   renderDefs() {
@@ -64,11 +110,11 @@ export default class GameScreen extends React.Component {
     return (
       <PokerTable
         pokerGame={this.pokerGame}
-        x={this.state.padding}
-        y={this.state.padding}
+        x={TABLE_PADDING}
+        y={TABLE_PADDING}
         height={tableHeight}
         width={tableWidth}
-        borderRadius={50}
+        borderRadius={TABLE_BORDER_RADIUS}
       ></PokerTable>
     );
   }
@@ -117,9 +163,9 @@ export default class GameScreen extends React.Component {
     const numPlayersOnRight = numPlayers - numPlayersOnLeft;
 
     // x position of players on the left side of the table
-    const xPosLeft = this.state.padding;
+    const xPosLeft = TABLE_PADDING;
     // x position of players on the right side of the table
-    const xPosRight = this.state.padding + tableWidth;
+    const xPosRight = TABLE_PADDING + tableWidth;
 
     // padding between players on the left side of the table
     const yPaddingLeft = tableHeight / (numPlayersOnLeft + 1);
@@ -131,7 +177,10 @@ export default class GameScreen extends React.Component {
         {pokerGame.players.map((player, playerIndex) => {
           let isOnLeftSide = playerIndex < numPlayersOnLeft;
           let xPos = (isOnLeftSide ? xPosLeft : xPosRight);
-          let yPos = this.state.padding + (isOnLeftSide ? yPaddingLeft * (playerIndex + 1) : yPaddingRight * (playerIndex - numPlayersOnLeft + 1));
+          let yPos = (isOnLeftSide ? 
+            TABLE_PADDING + (yPaddingLeft * (playerIndex + 1)) : 
+            TABLE_PADDING + (yPaddingRight * (playerIndex - numPlayersOnLeft + 1))
+          );
 
           return (
             <React.Fragment key={player.name}>
@@ -158,19 +207,100 @@ export default class GameScreen extends React.Component {
   }
 
   renderBackground() {
-    return (<Rect width="100%" height="100%" fill={`url(#${BACKGROUND_GRADIENT_ID})`}/>)
+    return (
+      <Rect width="100%" height="100%" fill={`url(#${BACKGROUND_GRADIENT_ID})`}/>
+    );
   }
 
   renderBackgroundDefs() {
     return (
-      <LinearGradient id={BACKGROUND_GRADIENT_ID} x1="0" y1="0" x2="100%" y2="100%">
+      <Svg.LinearGradient id={BACKGROUND_GRADIENT_ID} x1="0" y1="0" x2="100%" y2="100%">
         <Stop offset="0" stopColor="rgb(56,56,56)" stopOpacity="1"/>
         <Stop offset="100" stopColor="rgb(20,20,20)" stopOpacity="1"/>
-      </LinearGradient>
+      </Svg.LinearGradient>
     );
   }
 
+  renderActionButtons() {
+    const pokerGame = this.pokerGame;
+
+    return (
+      <View style={styles.actionButtonsContainer}>
+        <View style={styles.actionButtons}>
+          {pokerGame.canCurrentPlayerCheck() ? 
+            <Button
+              style={styles.actionButton}
+              color="#26a69a"
+              title="Check"
+              onPress={() => this.onCheck()}
+            ></Button>
+          : null}
+          {pokerGame.canCurrentPlayerCall() ? 
+            <Button
+              style={styles.actionButton}
+              color="#26a69a"
+              title="Check"
+              onPress={() => this.onCall()}
+            ></Button>
+          : null}
+          {pokerGame.canCurrentPlayerRaise() ?
+            <Button
+              style={styles.actionButton}
+              color="#26a69a"
+              title="Raise"
+              onPress={() => this.onRaise()}
+            ></Button>
+          : null}
+          {pokerGame.canCurrentPlayerFold() ? 
+            <Button
+              style={styles.actionButton}
+              color="#26a69a"
+              title="Fold"
+              onPress={() => this.onFold()}
+            ></Button>
+          : null}
+        </View>
+      </View>
+    );
+  }
+
+  renderModal() {
+    if (!this.state.showRaiseModal && !this.state.showAwardPotModal) {
+      return (null);
+    }
+
+    return (
+      <View style={styles.actionModalContainer}>
+        <LinearGradient
+          style={styles.actionModal}
+          colors={['#ffffff', '#aaaaaa']}
+        >
+          {this.state.showRaiseModal ? 
+            <RaiseModal
+              pokerGame={this.pokerGame}
+              onRaise={(raiseBy) => this.pokerGame.raise(raiseBy)}
+              onCancel={() => this.setState({showRaiseModal: false})}
+            ></RaiseModal>
+          : null}
+          {this.state.showAwardPotModal ? 
+            null
+          : null}
+        </LinearGradient>
+      </View>
+    );
+  }
+
+  renderAwardPotModal() {
+
+  }
+
   render() {
+    if (!this.pokerGame || !this.pokerGame.round) {
+      return (null);
+    }
+
+    console.log(`state: {showRaiseModal: ${this.state.showRaiseModal}, showAwardPotModal: ${this.state.showAwardPotModal}}`);
+
     return (
       <View>
         <Svg width={this.state.width} height={this.state.height} fill="black">
@@ -181,11 +311,49 @@ export default class GameScreen extends React.Component {
           {this.renderPots()}
           {this.renderCards()}
         </Svg>
+        {this.renderActionButtons()}
+        {this.renderModal()}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-
+  actionModalContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 45,
+    zIndex: 1001,
+  },
+  actionModal: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    padding: 50,
+  },
+  actionButtonsContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+    padding: 50,
+    zIndex: 1000,
+  },
+  actionButtons: {
+    padding: 20,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly'
+  },
+  actionButton: {
+    margin: 10,
+    fontSize: 8,
+  },
 });
