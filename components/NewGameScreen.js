@@ -150,6 +150,7 @@ export default class NewGameScreen extends React.Component {
           value={`${this.state[inputName]}`}
           onChangeText={(newText) => this.onNumericInputChanged(inputName, newText)}
           keyboardType='numeric'
+          selectTextOnFocus={true}
         ></TextInput>
       </View>
     );
@@ -186,6 +187,7 @@ export default class NewGameScreen extends React.Component {
           style={styles.editPlayerNameInput}
           value={player.name}
           onChangeText={(newText) => this.onPlayerNameChange(player.id, newText)}
+          selectTextOnFocus={true}
         ></TextInput>
       </View>
     );

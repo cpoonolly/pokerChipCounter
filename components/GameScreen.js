@@ -239,7 +239,7 @@ export default class GameScreen extends React.Component {
             <Button
               style={styles.actionButton}
               color="#26a69a"
-              title="Check"
+              title="Call"
               onPress={() => this.onCall()}
             ></Button>
           : null}
